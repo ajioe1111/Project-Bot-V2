@@ -1,0 +1,21 @@
+{
+  "name": "project-bot-v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Fuuka",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^1.4.0",
+    "@discordjs/rest": "^1.5.0",
+    "@discordjs/voice": "^0.14.0",
+    "bufferutil": "^4.0.7",
+    "discord.js": "^14.8.0",
+    "dotenv": "^16.0.3",
+    "openai": "^3.2.1",
+    "utf-8-validate": "^6.0.3"
+  }
+}
