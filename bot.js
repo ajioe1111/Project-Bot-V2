@@ -60,7 +60,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (interaction.replied || interaction.deferred) {
 			await interaction.followUp({ content: 'Произошла ошибка при выполнении этой команды!', ephemeral: true });
 		} else {
-			await interaction.reply({ content: '[ПРЕДУПРЕЖДЕНИЕ] Команда в ${filePath} не имеет обязательного свойства "data" или "execute".', ephemeral: true });
+			await interaction.reply({ content: `[ПРЕДУПРЕЖДЕНИЕ] Команда в ${filePath} не имеет обязательного свойства "data" или "execute".`, ephemeral: true });
 		}
 	}
 });
