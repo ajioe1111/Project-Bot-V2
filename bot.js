@@ -1,73 +1,85 @@
-// Загрузить необходимые классы discord.js.
-const fs = require('node:fs');
-const path = require('node:path');
-const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
-const { token } = require('./config.json');
-const registerCommand = require('./deploy-commands');
-
-// Создай клиента
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-// Обновляет команды на серверах
-registerCommand();
+// Load necessary discord.js classes.
+import { Client, Events, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
+import config from "./config.json" assert { type: "json" };
+const client = new Client({ intents: [GatewayIntentBits.Guilds] })
+import fs from 'fs';
 
 client.commands = new Collection();
 
-// Проверяет папку ./commands на наличие файлов команд в формате .js
-const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+// Получите все файлы команд из ранее созданного вами каталога команд
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
+const importPromises = [];
 
 for (const file of commandFiles) {
-	const filePath = path.join(commandsPath, file);
-	const command = require(filePath);
-	// Установить новый элемент в коллекцию, используя имя команды в качестве ключа и экспортированный модуль в качестве значения.
-	if ('data' in command && 'execute' in command) {
-		client.commands.set(command.data.name, command);
-	} else {
-		console.log(`[ПРЕДУПРЕЖДЕНИЕ] Команда в ${filePath} не имеет обязательного свойства "data" или "execute".`);
-	}
+	const fileName = `./commands/${file}`;
+	importPromises.push(import(fileName)
+		.then(module => client.commands.set(module.default.data.name, module.default))
+		.catch(console.error));
 }
-
-// Проверяет папку ./events на наличие файлов событий в формате .js
-const eventsPath = path.join(__dirname, 'events');
-const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
 for (const file of eventFiles) {
-	const filePath = path.join(eventsPath, file);
-	const event = require(filePath);
-	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
-	} else {
-		client.on(event.name, (...args) => event.execute(...args));
-	}
+	const fileName = `./events/${file}`;
+	importPromises.push(import(fileName)
+		.then(module => {
+			if (module.default.once) {
+				client.once(module.default.name, (...args) => module.default.execute(...args, client));
+			} else {
+				client.on(module.default.name, (...args) => module.default.execute(...args, client));
+			}
+		})
+		.catch(console.error));
 }
+// Создайте и подготовьте экземпляр модуля REST
+const rest = new REST({ version: '10' }).setToken(config.token);
 
-// Срабатывай каждый раз когда бот получает интеракцию (или же слэш команду)
-client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
+// и разверните ваши команды!
+export async function initAppCommands(guildId) {
+	const commandsInfo = client.commands.map(module => {
+		if (module.data) { module.data.defaultPermission = false }
+		return module.data;
 
-	const command = interaction.client.commands.get(interaction.commandName);
-
-	if (!command) {
-		console.error(`Не найдена ни одна команда, соответствующая ${interaction.commandName}.`);
-		return;
-	}
-
+	});
 	try {
-		await command.execute(interaction);
+		console.log('Началось обновление (/) команд.');
+
+		await rest.put(
+			Routes.applicationGuildCommands(config.clientId, config.guildId), // Если убрать guildId то команды будут обновлятся глобально.
+			{ body: commandsInfo },
+		);
+
+		console.log('Успешно обновлены (/) команды.');
 	} catch (error) {
 		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'Произошла ошибка при выполнении этой команды!', ephemeral: true });
-		} else {
-			await interaction.reply({ content: `[ПРЕДУПРЕЖДЕНИЕ] Команда в ${filePath} не имеет обязательного свойства "data" или "execute".`, ephemeral: true });
-		}
 	}
+};
+
+
+
+client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const command = client.commands.get(interaction.commandName);
+
+  if (!command) {
+    console.error(`Не найдена ни одна команда, соответствующая ${interaction.commandName}.`);
+    return;
+  }
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({ content: 'Произошла ошибка при выполнении этой команды!', ephemeral: true });
+    } else {
+      await interaction.reply({ content: `[ПРЕДУПРЕЖДЕНИЕ] Команда в ${filePath} не имеет обязательного свойства "data" или "execute".`, ephemeral: true });
+    }
+  }
 });
 
-// Токен для логина бота
-client.login(token).then(() => {
-    console.log(`Бот успешно подключен к Discord!`);
-  }).catch((err) => {
-    console.error(`Ошибка подключения к Discord: ${err}`);
-  });
+
+initAppCommands()
+Promise.all(importPromises)
+	.then(() => client.login(config.token))
+	.catch(console.error);

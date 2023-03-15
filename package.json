@@ -8,14 +8,17 @@
   },
   "author": "Fuuka",
   "license": "ISC",
+  "type": "module",
   "dependencies": {
     "@discordjs/builders": "^1.4.0",
     "@discordjs/rest": "^1.5.0",
     "@discordjs/voice": "^0.14.0",
     "bufferutil": "^4.0.7",
+    "chatgpt": "^5.0.10",
     "discord.js": "^14.8.0",
     "dotenv": "^16.0.3",
     "openai": "^3.2.1",
+    "puppeteer": "^19.7.5",
     "utf-8-validate": "^6.0.3"
   }
 }
