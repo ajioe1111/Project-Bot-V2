@@ -1,7 +1,28 @@
 // Load necessary discord.js classes.
 import { Client, Events, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
 import config from "./config.json" assert { type: "json" };
-const client = new Client({ intents: [GatewayIntentBits.Guilds] })
+const client = new Client({
+	 intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.AutoModerationConfiguration,
+		GatewayIntentBits.AutoModerationExecution,
+		GatewayIntentBits.DirectMessageReactions,
+		GatewayIntentBits.DirectMessageTyping,
+		GatewayIntentBits.DirectMessages,
+		GatewayIntentBits.GuildEmojisAndStickers,
+		GatewayIntentBits.GuildIntegrations,
+		GatewayIntentBits.GuildInvites,
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.GuildMessageTyping,
+		GatewayIntentBits.GuildModeration,
+		GatewayIntentBits.GuildPresences,
+		GatewayIntentBits.GuildScheduledEvents,
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildWebhooks
+	] })
 import fs from 'fs';
 
 client.commands = new Collection();
