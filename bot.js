@@ -79,7 +79,6 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 
-initAppCommands()
 Promise.all(importPromises)
 	.then(() => client.login(config.token))
 	.catch(console.error);
