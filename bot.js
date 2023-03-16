@@ -1,6 +1,8 @@
-// Load necessary discord.js classes.
+
 import { Client, Events, GatewayIntentBits, Collection, REST, Routes } from 'discord.js';
 import config from "./config.json" assert { type: "json" };
+import fs from 'fs';
+
 const client = new Client({
 	 intents: [
 		GatewayIntentBits.Guilds,
@@ -23,7 +25,7 @@ const client = new Client({
 		GatewayIntentBits.GuildVoiceStates,
 		GatewayIntentBits.GuildWebhooks
 	] })
-import fs from 'fs';
+
 
 client.commands = new Collection();
 
@@ -65,7 +67,7 @@ export async function initAppCommands(guildId) {
 		console.log('Началось обновление (/) команд.');
 
 		await rest.put(
-			Routes.applicationGuildCommands(config.clientId, config.guildId), // Если убрать guildId то команды будут обновлятся глобально.
+			Routes.applicationGuildCommands(config.clientId, guildId),
 			{ body: commandsInfo },
 		);
 
@@ -79,14 +81,11 @@ export async function initAppCommands(guildId) {
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
-
   const command = client.commands.get(interaction.commandName);
-
   if (!command) {
     console.error(`Не найдена ни одна команда, соответствующая ${interaction.commandName}.`);
     return;
   }
-
   try {
     await command.execute(interaction);
   } catch (error) {
@@ -94,7 +93,7 @@ client.on(Events.InteractionCreate, async interaction => {
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({ content: 'Произошла ошибка при выполнении этой команды!', ephemeral: true });
     } else {
-      await interaction.reply({ content: `[ПРЕДУПРЕЖДЕНИЕ] Команда в ${filePath} не имеет обязательного свойства "data" или "execute".`, ephemeral: true });
+      await interaction.reply({ content: `[ПРЕДУПРЕЖДЕНИЕ] Команда не имеет обязательного свойства "data" или "execute".`, ephemeral: true });
     }
   }
 });

@@ -7,6 +7,7 @@ export default {
 	once: true,
 	execute(client) {
 		console.log(`Запустился! Подключился как ${client.user.tag}`);
+		console.log(new Date());
 		client.guilds.cache.forEach(async guild => {
 			await initAppCommands(guild.id);
 		});
