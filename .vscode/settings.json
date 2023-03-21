@@ -1,0 +1,14 @@
+{
+    "search.exclude": {
+        "node_modules": true,
+        ".env": true,
+        "config.json": true,
+        "config.js": true
+    },
+    "files.exclude": {
+        "node_modules": true,
+        ".env": true,
+        "config.json": true,
+        "config.js": true
+    }
+}
